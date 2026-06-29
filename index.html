@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>아그로팀 데이터 디지털 현황판</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root { --primary-color: #2e7d32; --secondary-color: #4caf50; --bg-color: #f5f5f5; --card-bg: #ffffff; --text-color: #333333; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Malgun Gothic', sans-serif; }
@@ -96,16 +97,8 @@
 </div>
 
 <script>
-    // 기본 베이스 주소
-    const baseCUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTNjfIQDcif9QS9mYDYgzntYgjI2vSDtflPvJW6xF_bAoxXJu7H5zXrSom3pcUlh34dMeatXNAiF-1/pub?output=csv";
-    
-    // 각 탭의 순서 ID(gid)를 강제 지정해 가져오는 매핑 구조로 전면 수정
-    const urls = {
-        farm: baseCUrl + "&gid=0",
-        inspect: baseCUrl + "&gid=1", 
-        local: baseCUrl + "&gid=2",
-        real: baseCUrl + "&gid=3"
-    };
+    // 기존 CSV 주소를 통합 Excel(.xlsx) 로드 주소로 내부적 강제 전환하여 처리 (gid 우회 목적)
+    const baseCUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTNjfIQDcif9QS9mYDYgzntYgjI2vSDtflPvJW6xF_bAoxXJu7H5zXrSom3pcUlh34dMeatXNAiF-1/pub?output=xlsx";
 
     let currentMain = 'chaejongpo';
     let currentSub = 'farm-manage';
@@ -133,35 +126,37 @@
         filterData();
     }
 
-    // 4개의 시트 주소를 독립적으로 동시 로드하도록 대폭 개선
+    // 엑셀 바이너리를 통째로 받아와 탭의 순서(Index)대로 완벽 분리 파싱
     async function fetchAllData() {
-        document.querySelectorAll('.data-list').forEach(el => el.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> 데이터를 동기화 중...</div>');
-        const timestamp = "&cachebust=" + new Date().getTime();
+        document.querySelectorAll('.data-list').forEach(el => el.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> 구글 데이터 동기화 중...</div>');
         
         try {
-            const [resFarm, resInspect, resLocal, resReal] = await Promise.all([
-                fetch(urls.farm + timestamp).then(r => r.text()),
-                fetch(urls.inspect + timestamp).then(r => r.text()),
-                fetch(urls.local + timestamp).then(r => r.text()),
-                fetch(urls.real + timestamp).then(r => r.text())
-            ]);
+            const timestamp = "&cachebust=" + new Date().getTime();
+            const response = await fetch(baseCUrl + timestamp);
+            if (!response.ok) throw new Error("네트워크 응답 실패");
+            
+            const arrayBuffer = await response.arrayBuffer();
+            const data = new Uint8Array(arrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
 
-            allData.farm = parseSheet(resFarm, 7);
-            allData.inspect = parseSheet(resInspect, 6);
-            allData.local = parseSheet(resLocal, 7);
-            allData.real = parseSheet(resReal, 8);
+            // 구글 시트 내 생성된 탭 순서대로 (0번째, 1번째, 2번째, 3번째 탭) 안전하게 바인딩
+            if (workbook.SheetNames.length >= 1) allData.farm = parseExcelSheet(workbook.Sheets[workbook.SheetNames[0]], 7);
+            if (workbook.SheetNames.length >= 2) allData.inspect = parseExcelSheet(workbook.Sheets[workbook.SheetNames[1]], 6);
+            if (workbook.SheetNames.length >= 3) allData.local = parseExcelSheet(workbook.Sheets[workbook.SheetNames[2]], 7);
+            if (workbook.SheetNames.length >= 4) allData.real = parseExcelSheet(workbook.Sheets[workbook.SheetNames[3]], 8);
 
             renderAll();
         } catch (error) {
             console.error(error);
-            alert("구글 시트 연동 실패. 주소가 전체 공개(웹에 게시) 상태인지 다시 한번 확인해 주세요.");
+            document.querySelectorAll('.data-list').forEach(el => el.innerHTML = '<div class="loading" style="color:red;"><i class="fa-solid fa-triangle-exclamation"></i> 로딩 실패. 구글 시트가 [웹에 게시] 상태인지 다시 확인해 주세요.</div>');
         }
     }
 
-    function parseSheet(text, minLen) {
-        const lines = text.split('\n').map(line => line.split(',').map(c => c.trim()));
-        // 헤더(첫 줄)를 제외한 진짜 데이터만 추출
-        return lines.slice(1).filter(row => row[0] && row[0] !== "" && row.length >= minLen);
+    function parseExcelSheet(sheet, minLen) {
+        // SheetJS 내장 변환기로 배열 행렬 추출
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        // 첫 줄 제목(헤더)을 제외하고 첫 열에 데이터가 적힌 유효 행만 필터링
+        return rows.slice(1).filter(row => row && row[0] !== undefined && row[0] !== "");
     }
 
     function renderAll() {

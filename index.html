@@ -6,69 +6,46 @@
     <title>아그로팀 데이터 디지털 현황판</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #2e7d32;
-            --secondary-color: #4caf50;
-            --bg-color: #f5f5f5;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-        }
+        :root { --primary-color: #2e7d32; --secondary-color: #4caf50; --bg-color: #f5f5f5; --card-bg: #ffffff; --text-color: #333333; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Malgun Gothic', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 60px; }
-        
-        /* 헤더 스타일 */
         header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 20px 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         header h1 { font-size: 1.4rem; margin-bottom: 5px; }
         header p { font-size: 0.85rem; opacity: 0.9; }
-
-        /* 메인 카테고리 탭 (채종포 / 신품종) */
         .main-tabs { display: flex; background: #fff; border-bottom: 2px solid #e0e0e0; }
         .main-tab { flex: 1; text-align: center; padding: 15px 0; font-weight: bold; font-size: 1rem; color: #666; cursor: pointer; }
         .main-tab.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); background: #f9f9f9; }
-
-        /* 서브 카테고리 내비게이션 */
         .sub-tabs { display: none; padding: 10px; background: #eee; gap: 10px; overflow-x: auto; }
         .sub-tabs.active { display: flex; }
         .sub-tab { background: #fff; padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; border: 1px solid #ccc; cursor: pointer; }
         .sub-tab.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-
-        /* 컨텐츠 영역 */
         .container { padding: 15px; }
         .content-section { display: none; }
         .content-section.active { display: block; }
-
-        /* 상단 간단 요약 카드 */
         .summary-box { background: var(--card-bg); padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .summary-box h3 { font-size: 0.9rem; color: #666; }
         .summary-box .count { font-size: 1.5rem; font-weight: bold; color: var(--primary-color); }
-
-        /* 검색창 */
         .search-container { margin-bottom: 15px; position: relative; }
         .search-container input { width: 100%; padding: 12px 40px 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
         .search-container i { position: absolute; right: 15px; top: 15px; color: #aaa; }
-
-        /* 모바일 최적화 데이터 카드 리스트 */
         .data-list { display: flex; flex-direction: column; gap: 12px; }
         .data-card { background: var(--card-bg); border-radius: 8px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 5px solid var(--secondary-color); }
-        .data-card.alert { border-left-color: #d32f2f; background: #fff8f8; } /* 부적합/장해 하이라이트 */
+        .data-card.alert { border-left-color: #d32f2f; background: #fff8f8; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
         .card-title { font-weight: bold; font-size: 1.05rem; color: #111; }
         .card-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; background: #e8f5e9; color: var(--primary-color); }
         .card-badge.fail { background: #ffebee; color: #c62828; }
         .card-body { font-size: 0.88rem; color: #555; line-height: 1.6; }
         .card-body span { font-weight: bold; color: #333; }
-
-        /* 하단 고정 제어 바 */
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 50px; background: #fff; border-top: 1px solid #ddd; display: flex; justify-content: center; align-items: center; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
         .refresh-btn { background: none; border: none; font-size: 0.9rem; font-weight: bold; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        
         .loading { text-align: center; padding: 40px; font-size: 1rem; color: #666; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>🌾 아그ro팀 디지털 현황판</h1>
+    <h1>🌾 아그로팀 디지털 현황판</h1>
     <p>구글 시트 연동 실시간 모바일 대시보드</p>
 </header>
 
@@ -115,18 +92,25 @@
 </div>
 
 <div class="bottom-bar">
-    <button class="refresh-btn" onclick="fetchData()"><i class="fa-solid fa-rotate"></i> 실시간 새로고침</button>
+    <button class="refresh-btn" onclick="fetchAllData()"><i class="fa-solid fa-rotate"></i> 실시간 새로고침</button>
 </div>
 
 <script>
-    // 회원님이 제공해주신 구글 스프레드시트 CSV 웹 게시 주소
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTNjfIQDcif9QS9mYDYgzntYgjI2vSDtflPvJW6xF_bAoxXJu7H5zXrSom3pcUlh34dMeatXNAiF-1/pub?output=csv";
+    // 기본 베이스 주소
+    const baseCUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTNjfIQDcif9QS9mYDYgzntYgjI2vSDtflPvJW6xF_bAoxXJu7H5zXrSom3pcUlh34dMeatXNAiF-1/pub?output=csv";
+    
+    // 각 탭의 순서 ID(gid)를 강제 지정해 가져오는 매핑 구조로 전면 수정
+    const urls = {
+        farm: baseCUrl + "&gid=0",
+        inspect: baseCUrl + "&gid=1", 
+        local: baseCUrl + "&gid=2",
+        real: baseCUrl + "&gid=3"
+    };
 
     let currentMain = 'chaejongpo';
     let currentSub = 'farm-manage';
     let allData = { farm: [], inspect: [], local: [], real: [] };
 
-    // 메인 탭 전환
     function switchMainTab(tab) {
         currentMain = tab;
         document.querySelectorAll('.main-tab').forEach((el, idx) => {
@@ -134,13 +118,9 @@
         });
         document.getElementById('tabs-chaejongpo').classList.toggle('active', tab === 'chaejongpo');
         document.getElementById('tabs-sinpumjong').classList.toggle('active', tab === 'sinpumjong');
-        
-        // 메인 탭 바뀔 때 기본 하위 탭 자동 활성화
-        const targetSub = tab === 'chaejongpo' ? 'farm-manage' : 'local-test';
-        switchSubTab(targetSub);
+        switchSubTab(tab === 'chaejongpo' ? 'farm-manage' : 'local-test');
     }
 
-    // 서브 탭 전환
     function switchSubTab(subTab) {
         currentSub = subTab;
         document.querySelectorAll('.sub-tab').forEach(el => {
@@ -153,137 +133,94 @@
         filterData();
     }
 
-    // 구글 시트에서 데이터 가져오기 및 파싱
-    async function fetchData() {
-        document.querySelectorAll('.data-list').forEach(el => el.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> 실시간 데이터를 불러오는 중...</div>');
-        try {
-            const response = await fetch(csvUrl + "&cachebust=" + new Date().getTime());
-            const text = await response.text();
-            parseCSV(text);
-        } catch (error) {
-            alert("데이터를 불러오지 못했습니다. 시트 보안 설정이나 인터넷 연결을 확인해주세요.");
-        }
-    }
-
-    // 구글 단일 시트 내의 행들을 유추하여 각 데이터 목록으로 분류 분할
-    function parseCSV(text) {
-        const rows = text.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+    // 4개의 시트 주소를 독립적으로 동시 로드하도록 대폭 개선
+    async function fetchAllData() {
+        document.querySelectorAll('.data-list').forEach(el => el.innerHTML = '<div class="loading"><i class="fa-solid fa-spinner fa-spin"></i> 데이터를 동기화 중...</div>');
+        const timestamp = "&cachebust=" + new Date().getTime();
         
-        // 데이터 초기화
-        allData = { farm: [], inspect: [], local: [], real: [] };
+        try {
+            const [resFarm, resInspect, resLocal, resReal] = await Promise.all([
+                fetch(urls.farm + timestamp).then(r => r.text()),
+                fetch(urls.inspect + timestamp).then(r => r.text()),
+                fetch(urls.local + timestamp).then(r => r.text()),
+                fetch(urls.real + timestamp).then(r => r.text())
+            ]);
 
-        // CSV 내용을 순회하며 헤더 규칙이나 컬럼 수 기반으로 데이터 분류 자동 매핑
-        // (실제 실무 운영 편의를 위해 첫 열의 고유 식별 명칭에 따라 4개 데이터 파트로 분류되게 처리)
-        for(let i=1; i<rows.length; i++) {
-            const row = rows[i];
-            if(!row[0] || row[0] === "") continue;
+            allData.farm = parseSheet(resFarm, 7);
+            allData.inspect = parseSheet(resInspect, 6);
+            allData.local = parseSheet(resLocal, 7);
+            allData.real = parseSheet(resReal, 8);
 
-            // 1. 농가 관리 데이터 매핑 (구글 시트 기반 컬럼 매핑)
-            if(row.length >= 7 && (row[4] && (row[4].includes('완료') || row[4].includes('단계') || row[0].includes('농가')))) {
-                allData.farm.push({ id: row[0], region: row[1], name: row[2], size: row[3], stage: row[4], manager: row[5], note: row[6] });
-            } 
-            // 2. 포장 검사 데이터 매핑
-            else if (row.length >= 6 && row[2] && (row[2].includes('차') || row[2].includes('최종'))) {
-                allData.inspect.push({ id: row[0], name: row[1], turn: row[2], status: row[3], virus: row[4], date: row[5] });
-            }
-            // 3. 지역 적응성 데이터 매핑
-            else if (row.length >= 7 && row[3] && (row[3].includes('파종') || row[3].includes('조사') || row[3].includes('수확'))) {
-                allData.local.push({ id: row[0], region: row[1], breed: row[2], stage: row[3], date: row[4], desc: row[5], weight: row[6] });
-            }
-            // 4. 신품종 실증재배 데이터 매핑 (네거티브 셀렉션 요소 포함)
-            else if (row.length >= 8) {
-                allData.real.push({ id: row[0], name: row[1], breed: row[2], weight: row[3], shape: row[4], uniform: row[5], defect: row[6], pass: row[7] });
-            }
+            renderAll();
+        } catch (error) {
+            console.error(error);
+            alert("구글 시트 연동 실패. 주소가 전체 공개(웹에 게시) 상태인지 다시 한번 확인해 주세요.");
         }
-
-        // 만약 단일 문서 통으로 불러올 때 구분이 모호하면 전체 열 구조에 맞추어 기본 노출
-        if(allData.farm.length === 0 && allData.inspect.length === 0 && allData.local.length === 0 && allData.real.length === 0) {
-            // 구글 시트 작성 구조 데이터 임시 분배 보완책
-            distributeRawRows(rows);
-        }
-
-        renderAll();
     }
 
-    function distributeRawRows(rows) {
-        // 단일 시트 적재 방식의 인덱스 예외 처리용 자동 분배기
-        rows.forEach((row, i) => {
-            if(i === 0 || !row[0]) return;
-            let checkStr = row.join('');
-            if(checkStr.includes('계약') || checkStr.includes('하차')) {
-                allData.farm.push({ id: row[0], region: row[1], name: row[2], size: row[3], stage: row[4], manager: row[5], note: row[6]||'' });
-            } else if(checkStr.includes('바이러스') || checkStr.includes('회차')) {
-                allData.inspect.push({ id: row[0], name: row[1], turn: row[2], status: row[3], virus: row[4], date: row[5]||'' });
-            } else if(checkStr.includes('적응성') || checkStr.includes('계통명')) {
-                allData.local.push({ id: row[0], region: row[1], breed: row[2], stage: row[3], date: row[4], desc: row[5]||'', weight: row[6]||'' });
-            } else {
-                allData.real.push({ id: row[0]||'', name: row[1]||'', breed: row[2]||'', weight: row[3]||'', shape: row[4]||'', uniform: row[5]||'', defect: row[6]||'', pass: row[7]||'' });
-            }
-        });
+    function parseSheet(text, minLen) {
+        const lines = text.split('\n').map(line => line.split(',').map(c => c.trim()));
+        // 헤더(첫 줄)를 제외한 진짜 데이터만 추출
+        return lines.slice(1).filter(row => row[0] && row[0] !== "" && row.length >= minLen);
     }
 
-    // 화면에 카드 리스트 그리기
     function renderAll() {
         // 1. 농가 관리 렌더링
         const farmTarget = document.getElementById('list-farm');
         document.getElementById('count-farm').innerText = allData.farm.length;
-        farmTarget.innerHTML = allData.farm.map(d => `
+        farmTarget.innerHTML = allData.farm.map(row => `
             <div class="data-card">
-                <div class="card-header"><span class="card-title">${d.name} (${d.region})</span><span class="card-badge">${d.stage}</span></div>
-                <div class="card-body">면적: <span>${d.size}</span> | 담당자: <span>${d.manager}</span><br>특이사항: ${d.note}</div>
+                <div class="card-header"><span class="card-title">${row[2] || '미정'} (${row[1] || '-'})</span><span class="card-badge">${row[4] || '진행중'}</span></div>
+                <div class="card-body">면적: <span>${row[3] || '-'}</span> | 담당자: <span>${row[5] || '-'}</span><br>특이사항: ${row[6] || '없음'}</div>
             </div>
-        `).join('') || '<div class="loading">데이터가 없습니다.</div>';
+        `).join('') || '<div class="loading">등록된 데이터가 없습니다.</div>';
 
         // 2. 포장 검사 렌더링
         const inspectTarget = document.getElementById('list-inspect');
         document.getElementById('count-inspect').innerText = allData.inspect.length;
-        inspectTarget.innerHTML = allData.inspect.map(d => {
-            let isAlert = d.virus === 'Y' || d.status === '불량';
+        inspectTarget.innerHTML = allData.inspect.map(row => {
+            let isAlert = row[4] === 'Y' || row[3] === '불량';
             return `
                 <div class="data-card ${isAlert ? 'alert' : ''}">
-                    <div class="card-header"><span class="card-title">${d.name} [${d.turn}]</span><span class="card-badge ${isAlert?'fail':''}">${d.status}</span></div>
-                    <div class="card-body">바이러스 여부: <span>${d.virus}</span> | 검사일: <span>${d.date}</span></div>
+                    <div class="card-header"><span class="card-title">${row[1] || '-'} [${row[2] || '-'}]</span><span class="card-badge ${isAlert?'fail':''}">${row[3] || '-'}</span></div>
+                    <div class="card-body">바이러스 여부: <span>${row[4] || 'N'}</span> | 검사일: <span>${row[5] || '-'}</span></div>
                 </div>
             `;
-        }).join('') || '<div class="loading">데이터가 없습니다.</div>';
+        }).join('') || '<div class="loading">등록된 데이터가 없습니다.</div>';
 
         // 3. 지역적응성 렌더링
         const localTarget = document.getElementById('list-local');
         document.getElementById('count-local').innerText = allData.local.length;
-        localTarget.innerHTML = allData.local.map(d => `
+        localTarget.innerHTML = allData.local.map(row => `
             <div class="data-card">
-                <div class="card-header"><span class="card-title">${d.breed} [${d.region}]</span><span class="card-badge">${d.stage}</span></div>
-                <div class="card-body">작업일: <span>${d.date}</span> | 수확량: <span>${d.weight}</span><br>조사내용: ${d.desc}</div>
+                <div class="card-header"><span class="card-title">${row[2] || '-'} [${row[1] || '-'}]</span><span class="card-badge">${row[3] || '-'}</span></div>
+                <div class="card-body">작업일: <span>${row[4] || '-'}</span> | 수확량: <span>${row[6] || '0'}</span><br>조사내용: ${row[5] || '-'}</div>
             </div>
-        `).join('') || '<div class="loading">데이터가 없습니다.</div>';
+        `).join('') || '<div class="loading">등록된 데이터가 없습니다.</div>';
 
-        // 4. 실증재배 렌더링 (네거티브 셀렉션 시각화 강조)
+        // 4. 실증재배 렌더링 (네거티브 셀렉션 강조)
         const realTarget = document.getElementById('list-real');
         document.getElementById('count-real').innerText = allData.real.length;
-        realTarget.innerHTML = allData.real.map(d => {
-            let isBad = d.defect === '심함' || d.uniform === '하' || d.pass === '탈락';
+        realTarget.innerHTML = allData.real.map(row => {
+            let isBad = row[6] === '심함' || row[5] === '하' || row[7] === '탈락';
             return `
                 <div class="data-card ${isBad ? 'alert' : ''}">
-                    <div class="card-header"><span class="card-title">${d.breed} (${d.name} 농가)</span><span class="card-badge ${isBad?'fail':''}">${d.pass}</span></div>
-                    <div class="card-body">수량: <span>${d.weight}</span> | 모양: <span>${d.shape}</span> | 균일도: <span>${d.uniform}</span><br>생리장해: <span style="color:${d.defect==='심함'?'red':'inherit'}">${d.defect}</span></div>
+                    <div class="card-header"><span class="card-title">${row[2] || '-'} (${row[1] || '-'} 농가)</span><span class="card-badge ${isBad?'fail':''}">${row[7] || '-'}</span></div>
+                    <div class="card-body">수량: <span>${row[3] || '-'}</span> | 모양: <span>${row[4] || '-'}</span> | 균일도: <span>${row[5] || '-'}</span><br>생리장해: <span style="color:${row[6]==='심함'?'red':'inherit'}">${row[6] || '없음'}</span></div>
                 </div>
             `;
-        }).join('') || '<div class="loading">데이터가 없습니다.</div>';
+        }).join('') || '<div class="loading">등록된 데이터가 없습니다.</div>';
     }
 
-    // 실시간 키워드 필터링 검색 기능
     function filterData() {
         const query = document.getElementById('searchInput').value.toLowerCase();
         const cards = document.querySelectorAll('#sec-' + currentSub + ' .data-card');
-        
         cards.forEach(card => {
-            const text = card.innerText.toLowerCase();
-            card.style.display = text.includes(query) ? 'block' : 'none';
+            card.style.display = card.innerText.toLowerCase().includes(query) ? 'block' : 'none';
         });
     }
 
-    // 앱 시작 시 자동 실행
-    window.onload = fetchData;
+    window.onload = fetchAllData;
 </script>
 </body>
 </html>
